@@ -71,7 +71,7 @@ func screenshotHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/screenshot", screenshotHandler)
-	http.Handle("/", http.FileServer(http.Dir(".")))
+	http.Handle("/", http.FileServer(http.Dir("../web")))
 	fmt.Println("server running at http://localhost:54321")
 	log.Fatal(http.ListenAndServe(":54321", nil))
 }

@@ -1,0 +1,14 @@
+FROM golang:1.25.4-bookworm AS builder
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o main cmd/main.go
+
+FROM alpine:latest
+RUN apk add --no-cache chromium
+WORKDIR /app
+COPY --from=builder /app/main .
+COPY --from=builder /app/web ./web
+EXPOSE 54321
+CMD ["./main"]

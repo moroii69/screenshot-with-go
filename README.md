@@ -1,13 +1,18 @@
-screenshot tool
-
+## screenshot tool
 a simple tool to capture screenshots of websites.
+built with Go.
 
-built with go.
-
-prerequisites
-
-- go 1.25.4 or later
+### prerequisites
+- Go 1.25.4 or later
 - chrome or chromium browser
-- run `go get github.com/chromedp/chromedp` to install dependencies
+- run "go get github.com/chromedp/chromedp" to install dependencies
 
-run `go run main.go` to start the server on port 54321.
+## Usage
+
+Run "go run cmd/main.go" to start the server on port 54321.
+
+## Docker
+
+Build: "docker build -t screenshot-tool ."
+
+Run: "docker run -p 54321:54321 screenshot-tool"

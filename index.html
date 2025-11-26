@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>screenshot tool</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                font-family: "SF Mono", "Roboto Mono", "Consolas", monospace;
+                background: #fafafa;
+                color: #1a1a1a;
+                min-height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 60px;
+            }
+            .container {
+                display: grid;
+                grid-template-columns: 1fr 380px;
+                gap: 60px;
+                max-width: 1400px;
+                width: 100%;
+                background: white;
+                border: 1px solid #e0e0e0;
+                padding: 60px;
+            }
+            #preview {
+                width: 100%;
+                height: 600px;
+                border: 1px solid #e0e0e0;
+                background: #f5f5f5;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                overflow: hidden;
+                position: relative;
+            }
+            #preview img {
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+            }
+            #loading {
+                font-size: 12px;
+                color: #666;
+                display: none;
+                position: absolute;
+                letter-spacing: 0.5px;
+            }
+            .controls {
+                display: flex;
+                flex-direction: column;
+                gap: 32px;
+            }
+            h1 {
+                font-size: 20px;
+                font-weight: 500;
+                margin-bottom: 6px;
+                letter-spacing: -0.3px;
+                color: #1a1a1a;
+            }
+            .subtitle {
+                color: #666;
+                font-size: 12px;
+                margin-bottom: 16px;
+                letter-spacing: 0;
+                font-weight: 400;
+            }
+            .field {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            label {
+                font-size: 11px;
+                font-weight: 500;
+                color: #666;
+                letter-spacing: 0;
+            }
+            input,
+            select {
+                padding: 12px 14px;
+                border: 1px solid #d0d0d0;
+                background: white;
+                color: #1a1a1a;
+                font-size: 13px;
+                transition: border-color 0.2s ease;
+                font-family: inherit;
+                outline: none;
+            }
+            input:focus,
+            select:focus {
+                border-color: #999;
+            }
+            input::placeholder {
+                color: #aaa;
+            }
+            select {
+                cursor: pointer;
+            }
+            select option {
+                background: white;
+                color: #1a1a1a;
+            }
+            .button-group {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                margin-top: 8px;
+            }
+            button {
+                padding: 13px 20px;
+                font-size: 12px;
+                font-weight: 500;
+                border: 1px solid #d0d0d0;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-family: inherit;
+                letter-spacing: 0;
+                background: white;
+                color: #1a1a1a;
+            }
+            button:hover:not(:disabled) {
+                border-color: #1a1a1a;
+                background: #fafafa;
+            }
+            #captureBtn:disabled {
+                background: #f5f5f5;
+                color: #aaa;
+                border-color: #e0e0e0;
+                cursor: not-allowed;
+            }
+            #downloadBtn {
+                display: none;
+            }
+            .grid-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+            }
+            @media (max-width: 1024px) {
+                .container {
+                    grid-template-columns: 1fr;
+                }
+                #preview {
+                    order: 2;
+                }
+                .controls {
+                    order: 1;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div id="preview">
+                <span id="loading">loading screenshot...</span>
+                <img id="screenshot" alt="" />
+            </div>
+
+            <div class="controls">
+                <div>
+                    <h1>screenshot tool</h1>
+                    <p class="subtitle">capture web page screenshots</p>
+                </div>
+
+                <div class="field">
+                    <label>URL</label>
+                    <input type="text" id="url" placeholder="https://example.com" />
+                </div>
+
+                <div class="grid-row">
+                    <div class="field">
+                        <label>width</label>
+                        <input type="number" id="width" value="1920" />
+                    </div>
+                    <div class="field">
+                        <label>height</label>
+                        <input type="number" id="height" value="1080" />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>full page</label>
+                    <select id="fullpage">
+                        <option value="false" selected>no</option>
+                        <option value="true">yes</option>
+                    </select>
+                </div>
+
+                <div class="button-group">
+                    <button id="captureBtn" onclick="takeScreenshot()">take screenshot</button>
+                    <button id="downloadBtn" onclick="downloadImage()">download PNG</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            let currentBlob = null;
+
+            function takeScreenshot() {
+                const url = document.getElementById("url").value.trim();
+                if (!url) {
+                    alert("please enter a URL");
+                    return;
+                }
+
+                const width = document.getElementById("width").value;
+                const height = document.getElementById("height").value;
+                const fullpage = document.getElementById("fullpage").value;
+
+                const endpoint = `/screenshot?url=${encodeURIComponent(url)}&width=${width}&height=${height}&fullpage=${fullpage}`;
+
+                const btn = document.getElementById("captureBtn");
+                const loading = document.getElementById("loading");
+                const img = document.getElementById("screenshot");
+                const downloadBtn = document.getElementById("downloadBtn");
+
+                btn.disabled = true;
+                loading.style.display = "block";
+                img.style.display = "none";
+                downloadBtn.style.display = "none";
+
+                fetch(endpoint)
+                    .then((res) => res.blob())
+                    .then((blob) => {
+                        currentBlob = blob;
+                        const url = URL.createObjectURL(blob);
+                        img.src = url;
+                        img.style.display = "block";
+                        loading.style.display = "none";
+                        downloadBtn.style.display = "inline-block";
+                    })
+                    .catch((err) => {
+                        alert("Error: " + err);
+                        loading.style.display = "none";
+                    })
+                    .finally(() => (btn.disabled = false));
+            }
+
+            function downloadImage() {
+                if (!currentBlob) return;
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(currentBlob);
+                a.download = "screenshot.png";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        </script>
+    </body>
+</html>

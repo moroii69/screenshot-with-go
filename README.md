@@ -11,6 +11,12 @@ built with Go.
 run `go run cmd/main.go` to start the server on port 54321.
 
 ### docker
-build: `docker build -t screenshot-tool .`
+build:
+```
+docker build -t screenshot-tool .
+```
 
-run: `docker run -p 54321:54321 screenshot-tool`
+run:
+```
+docker run -p 54321:54321 screenshot-tool
+```
